@@ -1,0 +1,83 @@
+@import "tailwindcss";
+
+/* ── Tokens de design FleetDesk (Tailwind 4, configuration CSS-first) ── */
+@theme {
+  --color-bg: #020817;
+  --color-surface: #0d142a;
+  --color-surface-2: #0a1020;
+  --color-border: rgb(255 255 255 / 0.07);
+  --color-text: #e5e7eb;
+  --color-muted: #9ca3af;
+
+  --color-brand-blue: #3b82f6;
+  --color-brand-violet: #8b5cf6;
+  --color-brand-cyan: #06b6d4;
+  --color-brand-indigo: #6366f1;
+  --color-danger: #ef4444;
+  --color-success: #10b981;
+  --color-warning: #f59e0b;
+
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --radius-card: 1rem;
+  --shadow-card: 0 20px 60px rgb(0 0 0 / 0.45);
+
+  --animate-shimmer: shimmer 1.8s ease-in-out infinite;
+  --animate-fade-up: fade-up 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+  --animate-orb-a: orb-a 16s ease-in-out infinite;
+  --animate-orb-b: orb-b 20s ease-in-out infinite;
+
+  @keyframes shimmer {
+    0% {
+      background-position: -200% 0;
+    }
+    100% {
+      background-position: 200% 0;
+    }
+  }
+  @keyframes fade-up {
+    from {
+      opacity: 0;
+      transform: translateY(12px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  @keyframes orb-a {
+    0%,
+    100% {
+      transform: translate(0, 0) scale(1);
+    }
+    50% {
+      transform: translate(40px, -30px) scale(1.08);
+    }
+  }
+  @keyframes orb-b {
+    0%,
+    100% {
+      transform: translate(0, 0) scale(1);
+    }
+    50% {
+      transform: translate(-36px, 28px) scale(0.94);
+    }
+  }
+}
+
+body {
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+}
+
+/* Accessibilité : respecte la préférence « réduire les animations » */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

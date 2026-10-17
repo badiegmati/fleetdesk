@@ -1,0 +1,31 @@
+# Blueprint Render : https://dashboard.render.com → New → Blueprint → choisir ce dépôt.
+# Redéploiement automatique à chaque push sur main (seul billing-service/ est surveillé).
+services:
+  - type: web
+    name: fleetdesk-billing
+    runtime: node
+    plan: free
+    rootDir: billing-service
+    buildCommand: npm ci && npm run build
+    startCommand: npm start
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: NODE_ENV
+        value: production
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY   # clé service_role : à saisir dans Render, jamais ici
+        sync: false
+      - key: CORS_ORIGIN                 # URL Vercel du site, ex. https://fleetdesk.vercel.app
+        sync: false
+      - key: SMTP_HOST                   # facultatif : sans SMTP, pas d'e-mails
+        sync: false
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASSWORD
+        sync: false
+      - key: SMTP_FROM_EMAIL
+        sync: false

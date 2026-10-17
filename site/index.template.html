@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>FleetDesk — gestion de flotte de location multi-agences</title>
+<meta name="description" content="FleetDesk : réservations sans double réservation, contrats, facturation PDF, maintenance et assistant IA pour les sociétés de location de véhicules.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>/*CSS*/</style>
+</head>
+<body>
+<header class="top"><div class="wrap"><b>FleetDesk</b>
+<nav><a href="#fonctions">Fonctions</a><a href="#architecture">Architecture</a><a href="#roles">Rôles</a><a href="#lancer">Lancer</a><a href="resume.html">Résumé détaillé</a></nav></div></header>
+
+<main class="wrap">
+<h1>Une flotte, plusieurs agences, aucune double réservation.</h1>
+<p class="lead">FleetDesk réunit réservations, contrats, facturation, maintenance et prévision de la demande pour une société de location de véhicules. La règle « un véhicule ne peut pas être loué deux fois sur la même période » est garantie par la base de données, pas seulement par l'écran.</p>
+<div class="btns">{{APP_LINK}}<a class="btn" href="resume.html">Lire le résumé détaillé</a><a class="btn" href="{{REPO_URL}}">Code source</a></div>
+
+<div class="board" role="img" aria-label="Calendrier : trois véhicules sur quatorze jours, une réservation en conflit refusée">
+  <div class="row"><span>Véhicule</span><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span><span>10</span><span>11</span><span>12</span><span>13</span><span>14</span></div>
+  <div class="row"><span>201 TN 4521</span><span class="bar" style="grid-column:2/6">Ben Salah</span><span class="bar b2" style="grid-column:7/11">Dupont</span></div>
+  <div class="row"><span>202 TN 7733</span><span class="bar b2" style="grid-column:3/8">Trabelsi</span><span class="bar no" style="grid-column:6/10">Refusé : 23P01</span></div>
+  <div class="row"><span>301 TN 6610</span><span class="bar" style="grid-column:5/9">Rossi</span><span class="bar b2" style="grid-column:11/15">Gharbi</span></div>
+</div>
+<p class="cap">Deux agents tentent de réserver le 202 TN 7733 en même temps : PostgreSQL accepte la première demande et refuse la seconde (contrainte d'exclusion), l'interface affiche un message clair.</p>
+
+<h2 id="fonctions">Ce que fait l'application</h2>
+<dl class="mod">
+<dt>Tableau de bord</dt><dd>Taux d'occupation, chiffre d'affaires du mois, retours du jour, véhicules en maintenance, courbe réel / prévu.</dd>
+<dt>Flotte et clients</dt><dd>Fiches véhicules et clients, statuts, kilométrage, historique des locations et des interventions.</dd>
+<dt>Réservations</dt><dd>Calendrier par véhicule mis à jour en direct, création en un clic, conflits refusés par la base.</dd>
+<dt>Contrats</dt><dd>Création depuis une réservation, signature horodatée, états des lieux départ et retour avec photos.</dd>
+<dt>Facturation</dt><dd>Facture et PDF générés à la clôture du contrat, paiements partiels, retards, relances par e-mail.</dd>
+<dt>Maintenance</dt><dd>Planification et alertes kilométriques ; un véhicule immobilisé ne peut plus être réservé sur la période.</dd>
+<dt>Assistant IA</dt><dd>Questions en langage naturel, brouillons de réservation à valider, prévision de la demande, aide au contrôle des dommages. Optionnel.</dd>
+<dt>Paramètres</dt><dd>Agences, tarifs par catégorie, utilisateurs, rôles et invitations.</dd>
+</dl>
+
+<h2 id="architecture">Comment c'est construit</h2>
+<pre>Navigateur ── Next.js (Vercel) ──────────────┐
+                 │ JWT utilisateur            │
+                 ▼                            ▼
+          Supabase : Postgres + RLS    billing-service (Render)
+          Auth · Storage · Realtime     PDF · e-mails · relances
+                 ▲                            │ clé service_role
+   Edge Functions (Gemini) ◄── pg_cron        ▼
+   assistant · prévision · dommages        factures, PDF dans Storage</pre>
+<p>Toute la sécurité repose sur la base : Row Level Security sur chaque table, un client ne voit jamais les données d'une autre société, et les rôles sont appliqués par PostgreSQL. Aucun secret n'est dans le dépôt ; aucun Docker n'est nécessaire.</p>
+
+<h2 id="roles">Qui peut faire quoi</h2>
+<table>
+<tr><th>Rôle</th><th>Accès</th></tr>
+<tr><td>Administrateur</td><td>Tout : agences, tarifs, utilisateurs, invitations</td></tr>
+<tr><td>Gestionnaire d'agence</td><td>Flotte, maintenance, clients, réservations, contrats ; lecture des factures</td></tr>
+<tr><td>Agent</td><td>Clients, réservations, contrats, états des lieux ; aucun accès aux factures</td></tr>
+<tr><td>Comptable</td><td>Factures et paiements ; lecture des réservations ; ne modifie pas la flotte</td></tr>
+</table>
+
+<h2 id="lancer">Lancer le projet</h2>
+<pre>git clone {{REPO_URL}}.git &amp;&amp; cd fleetdesk
+# 1. Supabase : exécuter supabase/migrations/0001 → 0008 dans le SQL Editor
+# 2. Application
+cd web &amp;&amp; npm install &amp;&amp; copy .env.example .env.local &amp;&amp; npm run dev
+# 3. Service de facturation
+cd billing-service &amp;&amp; npm install &amp;&amp; copy .env.example .env &amp;&amp; npm run dev</pre>
+<p>Le détail complet (variables, déploiement, tests, limites) est dans le <a href="resume.html">résumé détaillé</a>.</p>
+</main>
+<div class="wrap"><footer>FleetDesk — <a href="{{REPO_URL}}">{{REPO}}</a>. Site généré automatiquement par GitHub Actions.</footer></div>
+</body>
+</html>

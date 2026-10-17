@@ -1,0 +1,32 @@
+name: Keep-alive
+
+# Les offres gratuites s'endorment : Render après ~15 min sans requête, Supabase après ~7 jours d'inactivité.
+# Ce workflow envoie une requête légère. Il ne fait rien tant que les variables ne sont pas définies.
+#   variable BILLING_URL    ex. https://fleetdesk-billing.onrender.com
+#   variable SUPABASE_URL   ex. https://nwfzuteyhquajkwjxspb.supabase.co
+#   secret   SUPABASE_ANON_KEY  (clé publique « anon »)
+# GitHub désactive les workflows planifiés après 60 jours sans activité sur le dépôt.
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    env:
+      BILLING_URL: ${{ vars.BILLING_URL }}
+      SUPABASE_URL: ${{ vars.SUPABASE_URL }}
+      SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+    steps:
+      - name: Billing-service (/health)
+        if: env.BILLING_URL != ''
+        run: curl -fsS --max-time 90 --retry 2 "${BILLING_URL%/}/health"
+      - name: Supabase (API REST)
+        if: env.SUPABASE_URL != '' && env.SUPABASE_ANON_KEY != ''
+        run: |
+          curl -sS -o /dev/null -w "supabase HTTP %{http_code}\n" --max-time 30 \
+            -H "apikey: $SUPABASE_ANON_KEY" "${SUPABASE_URL%/}/rest/v1/"

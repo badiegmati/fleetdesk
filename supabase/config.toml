@@ -1,0 +1,45 @@
+# Configuration du projet Supabase (CLI).
+# Ref de projet = celui que tu utilises déjà (visible dans l'URL du projet).
+project_id = "nwfzuteyhquajkwjxspb"
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public", "storage", "graphql_public"]
+extra_search_path = ["public", "extensions"]
+max_rows = 1000
+
+[db]
+port = 54322
+major_version = 15
+
+[studio]
+enabled = true
+port = 54323
+
+[auth]
+enabled = true
+site_url = "http://localhost:3000"
+additional_redirect_urls = ["https://fleetdesk.vercel.app"]
+jwt_expiry = 3600
+enable_signup = true
+enable_confirmations = true
+
+[storage]
+enabled = true
+file_size_limit = "50MiB"
+
+[edge_runtime]
+enabled = true
+
+# ai-assistant et damage-check s'exécutent avec le JWT de l'appelant → vérifié.
+[functions.ai-assistant]
+verify_jwt = true
+
+[functions.damage-check]
+verify_jwt = true
+
+# forecast-demand est appelée par pg_cron (pas de JWT utilisateur) :
+# elle vérifie elle-même un secret dans l'en-tête (voir code de la fonction).
+[functions.forecast-demand]
+verify_jwt = false

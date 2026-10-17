@@ -1,0 +1,51 @@
+name: Site public (GitHub Pages)
+
+# Publie le site de présentation (site/) sur https://<utilisateur>.github.io/<dépôt>/
+# Réglage unique : Settings → Pages → Source = « GitHub Actions ».
+on:
+  push:
+    branches: [main]
+    paths: ["site/**", "resume.md", ".github/workflows/pages.yml"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: site/package-lock.json
+      - name: Construire le site
+        working-directory: site
+        run: |
+          npm ci
+          node build.mjs
+        env:
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          APP_URL: ${{ vars.APP_URL }}
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site/dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
